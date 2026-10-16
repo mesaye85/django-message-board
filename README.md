@@ -1,16 +1,15 @@
-# Message board (mb-app)
+# Django message board
 
 A one-page Django message board: posts are added through the admin and listed on the home page.
 
 ## Context
 
-I built this in October 2020 while learning Django, before I knew the framework's conventions for settings, static files and deployment. I keep it public as a record of how I learned. The same code, with the same history, is in my `django_112` repository.
+I built this in October 2020 while learning Django, before I knew the framework's conventions for settings, static files and deployment. I keep it public as a record of how I learned. The repository was first named `mb-app`.
 
 ## Stack
 
 - Python 3.8.2 (from the virtualenv that was committed)
 - Django 3.1.2, asgiref 3.2.10, pytz 2020.1, sqlparse 0.4.1
-- gunicorn 19.9.0 (used by the Heroku `Procfile`)
 - SQLite
 
 ## Running it
@@ -29,16 +28,16 @@ Add posts at `/admin/` and they appear at `/`. `python manage.py test` runs four
 
 ## Status
 
-It runs locally. I set it up for Heroku (`Procfile`, gunicorn, `.herokuapp.com` in `ALLOWED_HOSTS`). As committed, it likely would not have built there, and it would not have kept its data (see below).
+It runs locally and isn't hosted anywhere. In October 2020 I added a Heroku setup (`Procfile`, gunicorn, `.herokuapp.com` in `ALLOWED_HOSTS`; commit `bcc672e`). I don't recall whether it was ever deployed. As committed it likely would not have built there, and it would not have kept its data (see below). I removed the Heroku setup in this cleanup; `ALLOWED_HOSTS` now comes from `DJANGO_ALLOWED_HOSTS` and defaults to `localhost,127.0.0.1`.
 
 ## Known gaps
 
 - `config/settings.py:24`: the secret key was hardcoded. It now comes from `DJANGO_SECRET_KEY`. The original key is still in git history; it was a development key.
 - `config/settings.py:27`: `DEBUG` was hardcoded to `True`. It now reads `DJANGO_DEBUG` and still defaults to `True`.
-- `config/settings.py:122`: only `STATIC_URL` is set. Without `STATIC_ROOT`, `collectstatic` fails with `ImproperlyConfigured`, and Heroku's Python build runs that step.
-- `config/settings.py:78-83`: SQLite is the only database. Heroku's filesystem is ephemeral, so posts would be lost whenever the dyno restarted.
-- The requirements file was committed as `requirments.txt`. Heroku's Python buildpack looks for `requirements.txt`, so it would not have found the dependencies. I renamed it in this cleanup without changing the pins.
-- No `runtime.txt`, so the Python version on Heroku was not pinned.
+- `config/settings.py:122`: only `STATIC_URL` is set. Without `STATIC_ROOT`, `collectstatic` fails with `ImproperlyConfigured`. Heroku's Python build runs that step, so the 2020 setup would have failed there.
+- `config/settings.py:78-83`: SQLite is the only database. Heroku's filesystem is ephemeral, so posts would have been lost whenever the dyno restarted.
+- The requirements file was committed as `requirments.txt`. Heroku's Python buildpack looks for `requirements.txt`, so it would not have found the dependencies. I renamed it in this cleanup and dropped gunicorn, which only the Heroku setup used; the other pins are unchanged.
+- There was no `runtime.txt`, so the Python version on Heroku was not pinned.
 - `manage.py check --deploy` reports five warnings: HSTS, SSL redirect, secure session and CSRF cookies, and `DEBUG`.
 - Posts can only be created in the admin. There is no form and no pagination.
 - `posts/tests.py`: the test class name has a typo (`PostModedTest`), and the model test uses `assertAlmostEqual` on strings where `assertEqual` was meant.
